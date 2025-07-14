@@ -48,8 +48,7 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
           
           setWeather(mockWeatherData);
           setHeatIndex(heatIndexResult);
-          // CHANGED: Ensure all items in the array are strings
-          setSafeWalkTimes(walkTimes.map(time => String(time))); 
+          setSafeWalkTimes(walkTimes.map(time => String(time)));
           
           Dialogs.alert({
             title: "Location Access",
@@ -83,7 +82,6 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
 
         setWeather(weatherData);
         setHeatIndex(heatIndexResult);
-        // CHANGED: Ensure all items in the array are strings
         setSafeWalkTimes(walkTimes.map(time => String(time)));
       } catch (locationError) {
         console.log('Failed to get location, using mock data:', locationError);
@@ -97,7 +95,6 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
         
         setWeather(mockWeatherData);
         setHeatIndex(heatIndexResult);
-        // CHANGED: Ensure all items in the array are strings
         setSafeWalkTimes(walkTimes.map(time => String(time)));
         
         Dialogs.alert({
