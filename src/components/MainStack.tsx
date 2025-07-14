@@ -2,8 +2,8 @@ import { BaseNavigationContainer } from '@react-navigation/core';
 import * as React from "react";
 import { stackNavigatorFactory } from "react-nativescript-navigation";
 
-import { ScreenOne } from "./ScreenOne";
-import { ScreenTwo } from "./ScreenTwo";
+import { HomeScreen } from "./HomeScreen";
+import { WalkHistoryScreen } from "./WalkHistoryScreen";
 
 const StackNavigator = stackNavigatorFactory();
 
@@ -13,21 +13,21 @@ const StackNavigator = stackNavigatorFactory();
 export const MainStack = () => (
     <BaseNavigationContainer>
         <StackNavigator.Navigator
-            initialRouteName="Screen One"
+            initialRouteName="Home"
             screenOptions={{
                 headerStyle: {
                     // backgroundColor: "white",
                 },
-                headerShown: true,
+                headerShown: false,
             }}
         >
             <StackNavigator.Screen
-                name="One"
-                component={ScreenOne}
+                name="Home"
+                component={HomeScreen}
             />
             <StackNavigator.Screen
-                name="Two"
-                component={ScreenTwo}
+                name="History"
+                component={WalkHistoryScreen}
             />
         </StackNavigator.Navigator>
     </BaseNavigationContainer>
