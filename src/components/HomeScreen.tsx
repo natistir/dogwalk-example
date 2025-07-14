@@ -48,7 +48,8 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
           
           setWeather(mockWeatherData);
           setHeatIndex(heatIndexResult);
-          setSafeWalkTimes(walkTimes.map(time => String(time)));
+          // CHANGED: Filter out null/undefined, then convert to string for maximum safety.
+          setSafeWalkTimes(walkTimes.filter(time => time != null).map(time => String(time)));
           
           Dialogs.alert({
             title: "Location Access",
@@ -82,7 +83,8 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
 
         setWeather(weatherData);
         setHeatIndex(heatIndexResult);
-        setSafeWalkTimes(walkTimes.map(time => String(time)));
+        // CHANGED: Filter out null/undefined, then convert to string for maximum safety.
+        setSafeWalkTimes(walkTimes.filter(time => time != null).map(time => String(time)));
       } catch (locationError) {
         console.log('Failed to get location, using mock data:', locationError);
         // Fall back to mock data if location fetch fails
@@ -95,7 +97,8 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
         
         setWeather(mockWeatherData);
         setHeatIndex(heatIndexResult);
-        setSafeWalkTimes(walkTimes.map(time => String(time)));
+        // CHANGED: Filter out null/undefined, then convert to string for maximum safety.
+        setSafeWalkTimes(walkTimes.filter(time => time != null).map(time => String(time)));
         
         Dialogs.alert({
           title: "Location Unavailable",
