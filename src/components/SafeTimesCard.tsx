@@ -13,7 +13,7 @@ export function SafeTimesCard({ suggestions }: SafeTimesCardProps) {
         {suggestions.map((suggestion, index) => (
           <flexboxLayout key={index} style={styles.suggestionItem}>
             <label style={styles.bullet} text="•" />
-            <label style={styles.suggestionText} text={suggestion || ''} />
+            <label style={styles.suggestionText} text={String(suggestion || '')} />
           </flexboxLayout>
         ))}
       </stackLayout>
