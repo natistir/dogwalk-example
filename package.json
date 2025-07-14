@@ -22,7 +22,8 @@
     "typescript": "~5.4.0"
   },
   "scripts": {
-    "build": "webpack --mode=production",
+    "build": "webpack --mode=production --env.ios",
+    "build:android": "webpack --mode=production --env.android",
     "ios": "ns debug ios",
     "android": "ns debug android"
   }
