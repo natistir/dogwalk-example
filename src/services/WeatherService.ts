@@ -1,86 +1,114 @@
-import { WeatherData, HeatIndexResult } from '../types/Weather';
+import { ApplicationSettings } from "@nativescript/core";
+import { WeatherData, HeatIndexResult } from "../types/Weather";
 
-export class WeatherService {
-  private static readonly API_KEY = 'demo'; // In production, use a real API key
-  
-  static async getMockWeatherData(): Promise<WeatherData> {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+// IMPORTANT: Replace with your actual OpenWeatherMap API key
+const API_KEY = "d112b77433237a1e12752532c5b3b183";
+
+/**
+ * A helper function to fetch weather data from a given URL and parse it.
+ * This avoids code duplication between fetching by geo-coordinates and by zip code.
+ * @param url The OpenWeatherMap API URL to fetch from.
+ * @returns A promise that resolves to the WeatherData object.
+ */
+async function fetchAndParseWeather(url: string): Promise<WeatherData> {
+    const response = await fetch(url);
+    if (!response.ok) {
+        const error = await response.json();
+        // Provide a more descriptive error message from the API if available
+        throw new Error(error.message || "Failed to fetch weather data");
+    }
+    const data = await response.json();
     
+    // Map the API response to our app's WeatherData structure
     return {
-      temperature: 78,
-      humidity: 65,
-      condition: 'Partly Cloudy',
-      location: 'Sample Location',
-      timestamp: new Date()
+        temperature: data.main.temp,
+        humidity: data.main.humidity,
+        description: data.weather[0].description,
+        location: data.name,
+        icon: data.weather[0].icon,
     };
-  }
-  
-  static async getCurrentWeather(lat: number, lon: number): Promise<WeatherData> {
-    try {
-      // Simulated weather data for demo purposes
-      // In production, use a real weather API like OpenWeatherMap
-      const mockWeather: WeatherData = {
-        temperature: Math.floor(Math.random() * 30) + 70, // 70-100°F
-        humidity: Math.floor(Math.random() * 40) + 40, // 40-80%
-        condition: 'sunny',
-        location: 'Current Location',
-        timestamp: new Date()
-      };
-      
-      return mockWeather;
-    } catch (error) {
-      throw new Error('Failed to fetch weather data');
-    }
-  }
-  
-  static calculateHeatIndex(temperature: number, humidity: number): HeatIndexResult {
-    // Heat index calculation using the formula
-    const T = temperature;
-    const RH = humidity;
-    
-    let HI = 0.5 * (T + 61.0 + ((T - 68.0) * 1.2) + (RH * 0.094));
-    
-    if (HI >= 80) {
-      HI = -42.379 + 2.04901523 * T + 10.14333127 * RH - 0.22475541 * T * RH
-        - 0.00683783 * T * T - 0.05481717 * RH * RH + 0.00122874 * T * T * RH
-        + 0.00085282 * T * RH * RH - 0.00000199 * T * T * RH * RH;
-    }
-    
-    let riskLevel: 'safe' | 'caution' | 'danger';
-    let message: string;
-    
-    if (HI < 80) {
-      riskLevel = 'safe';
-      message = 'Safe for walking';
-    } else if (HI < 90) {
-      riskLevel = 'caution';
-      message = 'Use caution - watch for signs of overheating';
-    } else {
-      riskLevel = 'danger';
-      message = 'Dangerous conditions - avoid walking';
-    }
-    
-    return {
-      heatIndex: Math.round(HI),
-      riskLevel,
-      message
-    };
-  }
-  
-  static getSafeWalkTimes(temperature: number): string[] {
-    const suggestions: string[] = [];
-    
-    if (temperature > 85) {
-      suggestions.push('Early morning (5:00 AM - 7:00 AM)');
-      suggestions.push('Late evening (8:00 PM - 10:00 PM)');
-    } else if (temperature > 75) {
-      suggestions.push('Morning (6:00 AM - 9:00 AM)');
-      suggestions.push('Evening (7:00 PM - 9:00 PM)');
-    } else {
-      suggestions.push('Anytime during daylight hours');
-    }
-    
-    return suggestions;
-  }
 }
+
+export const WeatherService = {
+    /**
+     * Fetches the current weather for a given latitude and longitude.
+     */
+    getCurrentWeather: async (latitude: number, longitude: number): Promise<WeatherData> => {
+        const url = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${API_KEY}&units=imperial`;
+        return fetchAndParseWeather(url);
+    },
+
+    /**
+     * NEW: Fetches the current weather for a given US zip code.
+     */
+    getWeatherByZipCode: async (zipCode: string): Promise<WeatherData> => {
+        const url = `https://api.openweathermap.org/data/2.5/weather?zip=${zipCode},us&appid=${API_KEY}&units=imperial`;
+        return fetchAndParseWeather(url);
+    },
+    
+    /**
+     * Provides mock weather data for testing or when location services are unavailable.
+     */
+    getMockWeatherData: async (): Promise<WeatherData> => {
+        console.log("Using mock weather data.");
+        return {
+            temperature: 95,
+            humidity: 70,
+            description: "Sunny",
+            location: "Mockville, USA",
+            icon: "01d",
+        };
+    },
+
+    /**
+     * Calculates the heat index and provides a corresponding risk level and advice.
+     */
+    calculateHeatIndex: (temperature: number, humidity: number): HeatIndexResult => {
+        const T = temperature;
+        const RH = humidity;
+        
+        // Steadman's formula for heat index calculation
+        let heatIndex = -42.379 + 2.04901523*T + 10.14333127*RH - 0.22475541*T*RH - 6.83783e-3*T*T - 5.481717e-2*RH*RH + 1.22874e-3*T*T*RH + 8.5282e-4*T*RH*RH - 1.99e-6*T*T*RH*RH;
+
+        // Adjustment for lower temperatures
+        if (T < 80) {
+            heatIndex = 0.5 * (T + 61.0 + ((T-68.0)*1.2) + (RH*0.094));
+        }
+
+        let riskLevel: 'low' | 'caution' | 'danger' | 'extreme' = 'low';
+        let advice = "It's a great day for a walk!";
+
+        if (heatIndex >= 125) {
+            riskLevel = 'extreme';
+            advice = "Extreme danger: Heatstroke highly likely. Avoid outdoor activity.";
+        } else if (heatIndex >= 103) {
+            riskLevel = 'danger';
+            advice = "Danger: Heatstroke, cramps, or exhaustion likely. Limit outdoor time.";
+        } else if (heatIndex >= 90) {
+            riskLevel = 'caution';
+            advice = "Caution: Fatigue possible with prolonged exposure. Take breaks.";
+        }
+        
+        return {
+            heatIndex: Math.round(heatIndex),
+            riskLevel,
+            advice,
+        };
+    },
+
+    /**
+     * Provides suggestions for safe walking times based on the air temperature.
+     */
+    getSafeWalkTimes: (temperature: number): string[] => {
+        if (temperature < 80) {
+            return ["Anytime is a good time for a walk!"];
+        }
+        if (temperature >= 80 && temperature < 85) {
+            return ["Early morning (before 10 AM)", "Late evening (after 7 PM)"];
+        }
+        if (temperature >= 85 && temperature < 95) {
+            return ["Very early morning (before 8 AM)", "Very late evening (after 8 PM)"];
+        }
+        return ["Consider indoor activities today.", "If you must walk, go before sunrise or after sunset."];
+    },
+};
