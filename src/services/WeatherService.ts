@@ -2,7 +2,7 @@ import { ApplicationSettings } from "@nativescript/core";
 import { WeatherData, HeatIndexResult } from "../types/Weather";
 
 // IMPORTANT: Replace with your actual OpenWeatherMap API key
-const API_KEY = "d7e2709eefa609d27aec6aaeeeef6ce66";
+const API_KEY = "92c7312cf5954f1e7e3252bf3e62fa0b";
 
 /**
  * A helper function to fetch weather data from a given URL and parse it.
