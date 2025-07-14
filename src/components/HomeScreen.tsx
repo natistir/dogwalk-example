@@ -32,40 +32,83 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
   const loadWeatherData = async () => {
     setLoading(true);
     try {
-      // Request location permission and get current location
-      const hasPermission = await geolocation.enableLocationRequest();
-      if (!hasPermission) {
-        throw new Error('Location permission denied');
+      // Check if location is enabled and request permission
+      const isEnabled = await geolocation.isEnabled();
+      if (!isEnabled) {
+        const enableResult = await geolocation.enableLocationRequest();
+        if (!enableResult) {
+          // Fall back to mock data if location is denied
+          console.log('Location permission denied, using mock data');
+          const mockWeatherData = await WeatherService.getMockWeatherData();
+          const heatIndexResult = WeatherService.calculateHeatIndex(
+            mockWeatherData.temperature, 
+            mockWeatherData.humidity
+          );
+          const walkTimes = WeatherService.getSafeWalkTimes(mockWeatherData.temperature);
+          
+          setWeather(mockWeatherData);
+          setHeatIndex(heatIndexResult);
+          setSafeWalkTimes(walkTimes);
+          
+          Dialogs.alert({
+            title: "Location Access",
+            message: "Using sample weather data. Enable location access in settings for accurate local weather.",
+            okButtonText: "OK"
+          });
+          return;
+        }
       }
 
-      const location = await geolocation.getCurrentLocation({
-        desiredAccuracy: 3,
-        updateDistance: 10,
-        maximumAge: 20000,
-        timeout: 20000
-      });
+      try {
+        const location = await geolocation.getCurrentLocation({
+          desiredAccuracy: 3,
+          updateDistance: 10,
+          maximumAge: 20000,
+          timeout: 20000
+        });
 
-      // Get weather data
-      const weatherData = await WeatherService.getCurrentWeather(
-        location.latitude, 
-        location.longitude
-      );
+        // Get weather data
+        const weatherData = await WeatherService.getCurrentWeather(
+          location.latitude, 
+          location.longitude
+        );
+        
+        const heatIndexResult = WeatherService.calculateHeatIndex(
+          weatherData.temperature, 
+          weatherData.humidity
+        );
+
+        const walkTimes = WeatherService.getSafeWalkTimes(weatherData.temperature);
+
+        setWeather(weatherData);
+        setHeatIndex(heatIndexResult);
+        setSafeWalkTimes(walkTimes);
+      } catch (locationError) {
+        console.log('Failed to get location, using mock data:', locationError);
+        // Fall back to mock data if location fetch fails
+        const mockWeatherData = await WeatherService.getMockWeatherData();
+        const heatIndexResult = WeatherService.calculateHeatIndex(
+          mockWeatherData.temperature, 
+          mockWeatherData.humidity
+        );
+        const walkTimes = WeatherService.getSafeWalkTimes(mockWeatherData.temperature);
+        
+        setWeather(mockWeatherData);
+        setHeatIndex(heatIndexResult);
+        setSafeWalkTimes(walkTimes);
+        
+        Dialogs.alert({
+          title: "Location Unavailable",
+          message: "Unable to get your location. Using sample weather data for demonstration.",
+          okButtonText: "OK"
+        });
+      }
       
-      const heatIndexResult = WeatherService.calculateHeatIndex(
-        weatherData.temperature, 
-        weatherData.humidity
-      );
-
-      const walkTimes = WeatherService.getSafeWalkTimes(weatherData.temperature);
-
-      setWeather(weatherData);
-      setHeatIndex(heatIndexResult);
-      setSafeWalkTimes(walkTimes);
     } catch (error) {
       console.error('Failed to load weather data:', error);
       Dialogs.alert({
         title: "Error",
-        message: "Failed to load weather data. Please check your location settings and try again.",
+        message: "Failed to load weather data. Please try again or check your settings.",
         okButtonText: "OK"
       });
     } finally {

@@ -1,5 +1,18 @@
 import { WeatherData, HeatIndexResult } from '../types/Weather';
 
+  async getMockWeatherData(): Promise<WeatherData> {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    return {
+      temperature: 78,
+      humidity: 65,
+      condition: 'Partly Cloudy',
+      location: 'Sample Location',
+      timestamp: new Date()
+    };
+  },
+
 export class WeatherService {
   private static readonly API_KEY = 'demo'; // In production, use a real API key
   

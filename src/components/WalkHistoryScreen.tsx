@@ -111,11 +111,11 @@ export function WalkHistoryScreen({ navigation }: WalkHistoryProps) {
                       )}
                     </flexboxLayout>
 
-                    {log.duration && (
+                    {log.duration != null && log.duration !== undefined && (
                       <label style={styles.duration} text={`Duration: ${log.duration} minutes`} />
                     )}
 
-                    {log.notes && (
+                    {log.notes != null && log.notes !== undefined && log.notes.trim() !== '' && (
                       <label style={styles.notes} text={log.notes} />
                     )}
                   </stackLayout>
