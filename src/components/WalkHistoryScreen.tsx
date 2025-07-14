@@ -6,6 +6,7 @@ import { MainStackParamList } from "../NavigationParamList";
 import { StorageService } from '../services/StorageService';
 import { WalkLog } from '../types/Weather';
 import { format } from 'date-fns';
+import { ErrorBoundary } from './ErrorBoundary';
 
 type WalkHistoryProps = {
     route: RouteProp<MainStackParamList, "History">,
@@ -48,85 +49,88 @@ export function WalkHistoryScreen({ navigation }: WalkHistoryProps) {
   };
 
   return (
-    <stackLayout style={styles.container}>
-      <flexboxLayout style={styles.header}>
-        <button 
-          style={styles.backButton} 
-          text="← Back" 
-          onTap={() => navigation.goBack()} 
-        />
-        <label style={styles.title} text="Walk History" />
-        <button 
-          style={styles.clearButton} 
-          text="Clear" 
-          onTap={clearHistory} 
-        />
-      </flexboxLayout>
+    <ErrorBoundary>
+      <gridLayout rows="auto, *" style={styles.container}>
+        <flexboxLayout row={0} style={styles.header}>
+          <button 
+            style={styles.backButton} 
+            text="← Back" 
+            onTap={() => navigation.goBack()} 
+          />
+          <label style={styles.title} text="Walk History" />
+          <button 
+            style={styles.clearButton} 
+            text="Clear" 
+            onTap={clearHistory} 
+          />
+        </flexboxLayout>
 
-      {walkLogs.length === 0 ? (
-        <stackLayout style={styles.emptyState}>
-          <label style={styles.emptyIcon} text="📝" />
-          <label style={styles.emptyText} text="No walk history yet" />
-          <label style={styles.emptySubtext} text="Your completed walks will appear here" />
-        </stackLayout>
-      ) : (
-        <scrollView style={styles.scrollView}>
-          <stackLayout style={styles.logsList}>
-            {walkLogs.map((log) => (
-              <stackLayout key={log.id} style={styles.logItem}>
-                <flexboxLayout style={styles.logHeader}>
-                  <stackLayout style={styles.logDate}>
-                    <label style={styles.dateText} text={format(log.date, 'MMM dd, yyyy')} />
-                    <label style={styles.timeText} text={format(log.date, 'h:mm a')} />
+        <stackLayout row={1}>
+          {walkLogs.length === 0 ? (
+            <stackLayout style={styles.emptyState}>
+              <label style={styles.emptyIcon} text="📝" />
+              <label style={styles.emptyText} text="No walk history yet" />
+              <label style={styles.emptySubtext} text="Your completed walks will appear here" />
+            </stackLayout>
+          ) : (
+            <scrollView>
+              <stackLayout style={styles.logsList}>
+                {walkLogs.map((log) => (
+                  <stackLayout key={log.id} style={styles.logItem}>
+                    <flexboxLayout style={styles.logHeader}>
+                      <stackLayout style={styles.logDate}>
+                        <label style={styles.dateText} text={format(log.date, 'MMM dd, yyyy')} />
+                        <label style={styles.timeText} text={format(log.date, 'h:mm a')} />
+                      </stackLayout>
+                      <flexboxLayout style={styles.riskIndicator}>
+                        <label style={styles.riskIcon} text={getRiskIcon(log.riskLevel)} />
+                        <label 
+                          style={{
+                            ...styles.riskText,
+                            color: getRiskColor(log.riskLevel)
+                          }} 
+                          text={log.riskLevel.toUpperCase()} 
+                        />
+                      </flexboxLayout>
+                    </flexboxLayout>
+
+                    <flexboxLayout style={styles.logDetails}>
+                      <stackLayout style={styles.detailItem}>
+                        <label style={styles.detailLabel} text="Temperature" />
+                        <label style={styles.detailValue} text={`${log.temperature}°F`} />
+                      </stackLayout>
+                      <stackLayout style={styles.detailItem}>
+                        <label style={styles.detailLabel} text="Heat Index" />
+                        <label style={styles.detailValue} text={`${log.heatIndex}°F`} />
+                      </stackLayout>
+                      {log.surfaceTemp && (
+                        <stackLayout style={styles.detailItem}>
+                          <label style={styles.detailLabel} text="Surface" />
+                          <label style={styles.detailValue} text={`${log.surfaceTemp}°F`} />
+                        </stackLayout>
+                      )}
+                    </flexboxLayout>
+
+                    {log.duration && (
+                      <label style={styles.duration} text={`Duration: ${log.duration} minutes`} />
+                    )}
+
+                    {log.notes && (
+                      <label style={styles.notes} text={log.notes} />
+                    )}
                   </stackLayout>
-                  <flexboxLayout style={styles.riskIndicator}>
-                    <label style={styles.riskIcon} text={getRiskIcon(log.riskLevel)} />
-                    <label 
-                      style={{
-                        ...styles.riskText,
-                        color: getRiskColor(log.riskLevel)
-                      }} 
-                      text={log.riskLevel.toUpperCase()} 
-                    />
-                  </flexboxLayout>
-                </flexboxLayout>
-
-                <flexboxLayout style={styles.logDetails}>
-                  <stackLayout style={styles.detailItem}>
-                    <label style={styles.detailLabel} text="Temperature" />
-                    <label style={styles.detailValue} text={`${log.temperature}°F`} />
-                  </stackLayout>
-                  <stackLayout style={styles.detailItem}>
-                    <label style={styles.detailLabel} text="Heat Index" />
-                    <label style={styles.detailValue} text={`${log.heatIndex}°F`} />
-                  </stackLayout>
-                  {log.surfaceTemp && (
-                    <stackLayout style={styles.detailItem}>
-                      <label style={styles.detailLabel} text="Surface" />
-                      <label style={styles.detailValue} text={`${log.surfaceTemp}°F`} />
-                    </stackLayout>
-                  )}
-                </flexboxLayout>
-
-                {log.duration && (
-                  <label style={styles.duration} text={`Duration: ${log.duration} minutes`} />
-                )}
-
-                {log.notes && (
-                  <label style={styles.notes} text={log.notes} />
-                )}
+                ))}
               </stackLayout>
-            ))}
-          </stackLayout>
-        </scrollView>
-      )}
-    </stackLayout>
+            </scrollView>
+          )}
+        </stackLayout>
+      </gridLayout>
+    </ErrorBoundary>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    height: "100%",
     backgroundColor: "#F5F5F5",
   },
   header: {
@@ -171,9 +175,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#999",
     textAlignment: "center",
-  },
-  scrollView: {
-    flex: 1,
   },
   logsList: {
     padding: 16,

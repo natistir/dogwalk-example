@@ -4,6 +4,7 @@ import { stackNavigatorFactory } from "react-nativescript-navigation";
 
 import { HomeScreen } from "./HomeScreen";
 import { WalkHistoryScreen } from "./WalkHistoryScreen";
+import { ErrorBoundary } from "./ErrorBoundary";
 
 const StackNavigator = stackNavigatorFactory();
 
@@ -11,24 +12,26 @@ const StackNavigator = stackNavigatorFactory();
  * The main stack navigator for the whole app.
  */
 export const MainStack = () => (
-    <BaseNavigationContainer>
-        <StackNavigator.Navigator
-            initialRouteName="Home"
-            screenOptions={{
-                headerStyle: {
-                    // backgroundColor: "white",
-                },
-                headerShown: false,
-            }}
-        >
-            <StackNavigator.Screen
-                name="Home"
-                component={HomeScreen}
-            />
-            <StackNavigator.Screen
-                name="History"
-                component={WalkHistoryScreen}
-            />
-        </StackNavigator.Navigator>
-    </BaseNavigationContainer>
+    <ErrorBoundary>
+        <BaseNavigationContainer>
+            <StackNavigator.Navigator
+                initialRouteName="Home"
+                screenOptions={{
+                    headerStyle: {
+                        // backgroundColor: "white",
+                    },
+                    headerShown: false,
+                }}
+            >
+                <StackNavigator.Screen
+                    name="Home"
+                    component={HomeScreen}
+                />
+                <StackNavigator.Screen
+                    name="History"
+                    component={WalkHistoryScreen}
+                />
+            </StackNavigator.Navigator>
+        </BaseNavigationContainer>
+    </ErrorBoundary>
 );

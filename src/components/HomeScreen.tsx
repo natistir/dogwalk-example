@@ -11,6 +11,7 @@ import { WeatherData, HeatIndexResult, WalkLog } from '../types/Weather';
 import { WeatherCard } from './WeatherCard';
 import { PawCheckModal } from './PawCheckModal';
 import { SafeTimesCard } from './SafeTimesCard';
+import { ErrorBoundary } from './ErrorBoundary';
 
 type HomeScreenProps = {
     route: RouteProp<MainStackParamList, "Home">,
@@ -121,46 +122,48 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
   };
 
   return (
-    <stackLayout style={styles.container}>
-      <flexboxLayout style={styles.header}>
-        <stackLayout style={styles.titleSection}>
-          <label style={styles.appTitle} text="🐕 DogWalk Safety" />
-          <label style={styles.subtitle} text="Keep your pup safe!" />
-        </stackLayout>
-        <button 
-          style={styles.historyButton} 
-          text="📋"
-          onTap={() => navigation.navigate("History")} 
-        />
-      </flexboxLayout>
+    <ErrorBoundary>
+      <gridLayout rows="auto, *" style={styles.container}>
+        <flexboxLayout row={0} style={styles.header}>
+          <stackLayout style={styles.titleSection}>
+            <label style={styles.appTitle} text="🐕 DogWalk Safety" />
+            <label style={styles.subtitle} text="Keep your pup safe!" />
+          </stackLayout>
+          <button 
+            style={styles.historyButton} 
+            text="📋"
+            onTap={() => navigation.navigate("History")} 
+          />
+        </flexboxLayout>
 
-      <scrollView style={styles.scrollView}>
-        <stackLayout style={styles.content}>
+        <stackLayout row={1} style={styles.mainContent}>
           {loading ? (
             <stackLayout style={styles.loadingContainer}>
               <label style={styles.loadingText} text="Loading weather data..." />
             </stackLayout>
           ) : weather && heatIndex ? (
-            <>
-              <WeatherCard 
-                weather={weather} 
-                heatIndex={heatIndex} 
-                onRefresh={loadWeatherData}
-              />
-              
-              <SafeTimesCard suggestions={safeWalkTimes} />
-              
-              <stackLayout style={styles.actionButtons}>
-                <button 
-                  style={styles.pawCheckButton}
-                  text="🐾 Paw Check"
-                  onTap={startWalk}
+            <scrollView>
+              <stackLayout style={styles.content}>
+                <WeatherCard 
+                  weather={weather} 
+                  heatIndex={heatIndex} 
+                  onRefresh={loadWeatherData}
                 />
-                <label style={styles.pawCheckHint} 
-                  text="Test surface temperature before walking" 
-                />
+                
+                <SafeTimesCard suggestions={safeWalkTimes} />
+                
+                <stackLayout style={styles.actionButtons}>
+                  <button 
+                    style={styles.pawCheckButton}
+                    text="🐾 Paw Check"
+                    onTap={startWalk}
+                  />
+                  <label style={styles.pawCheckHint} 
+                    text="Test surface temperature before walking" 
+                  />
+                </stackLayout>
               </stackLayout>
-            </>
+            </scrollView>
           ) : (
             <stackLayout style={styles.errorContainer}>
               <label style={styles.errorText} text="Unable to load weather data" />
@@ -172,20 +175,19 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
             </stackLayout>
           )}
         </stackLayout>
-      </scrollView>
 
-      <PawCheckModal 
-        isVisible={showPawCheck}
-        onClose={() => setShowPawCheck(false)}
-        onResult={handlePawCheckResult}
-      />
-    </stackLayout>
+        <PawCheckModal 
+          isVisible={showPawCheck}
+          onClose={() => setShowPawCheck(false)}
+          onResult={handlePawCheckResult}
+        />
+      </gridLayout>
+    </ErrorBoundary>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    height: "100%",
     backgroundColor: "#F5F5F5",
   },
   header: {
@@ -215,8 +217,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 8,
   },
-  scrollView: {
-    flex: 1,
+  mainContent: {
+    backgroundColor: "#F5F5F5",
   },
   content: {
     paddingBottom: 20,
