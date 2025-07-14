@@ -22,8 +22,8 @@
     "typescript": "~5.4.0"
   },
   "scripts": {
-    "build": "webpack --env.production --env.ios",
-    "build:android": "webpack --env.production --env.android",
+    "build": "NODE_ENV=production webpack --env.ios",
+    "build:android": "NODE_ENV=production webpack --env.android",
     "ios": "ns debug ios",
     "android": "ns debug android"
   }
